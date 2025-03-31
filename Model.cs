@@ -8,10 +8,16 @@ namespace Trans.Model;
 
 public class WordContext : DbContext
 {
+    private readonly string _connectionString;
+
+    public WordContext(string connectionString = null)
+    {
+        _connectionString = connectionString ?? "Host=localhost;Port=5432;Database=worddb;Username=user;Password=password";
+    }
     public DbSet<Word> Words { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseNpgsql("Host=192.168.1.5;Port=12345;Database=learning;Username=usr;Password=123456");
+        optionsBuilder.UseNpgsql(_connectionString);
     }
 }
 

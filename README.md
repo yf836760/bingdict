@@ -28,7 +28,9 @@ adj. 命令式的；专断的；权威式的；权威性的；
 
 ```
 
-
+## 配置
+1. 复制 dbconfig.json.example 为 dbconfig.json
+2. 修改 dbconfig.json 中的数据库连接信息
 
 ## 注意事项
 

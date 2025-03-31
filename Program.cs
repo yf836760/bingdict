@@ -1,8 +1,36 @@
 ﻿using HtmlAgilityPack;
 using System.Text;
 using Trans.Model;
+using System.Text.Json;
 
 Console.OutputEncoding = Encoding.UTF8; //使console可以正常输出音标
+
+// 读取数据库配置
+string connectionString = null;
+try
+{
+    // 尝试从可执行文件所在目录读取配置文件
+    string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "dbconfig.json");
+    
+    if (File.Exists(configPath))
+    {
+        string jsonContent = File.ReadAllText(configPath);
+        using JsonDocument doc = JsonDocument.Parse(jsonContent);
+        if (doc.RootElement.TryGetProperty("ConnectionString", out JsonElement connElement))
+        {
+            connectionString = connElement.GetString();
+        }
+    }
+    else
+    {
+        Console.WriteLine($"警告：数据库配置文件不存在: {configPath}，将使用默认连接字符串");
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"读取配置文件时出错: {ex.Message}，将使用默认连接字符串");
+}
+
         
 string words = string.Empty;
 if (args.Length == 0 || !IsValidEnglishWord(String.Join(" ", args).Trim()))
@@ -10,6 +38,9 @@ if (args.Length == 0 || !IsValidEnglishWord(String.Join(" ", args).Trim()))
     Console.WriteLine("包含非英文字符，或字符数超过100");
     return;
 }
+
+words = String.Join(" ", args).Trim();
+
 string bingDictURL = "https://cn.bing.com/dict/search?q=";
 var url = $@"{bingDictURL}{words}";
 HttpClient client = new HttpClient();
@@ -17,7 +48,7 @@ HttpResponseMessage response = await client.GetAsync(url);
 response.EnsureSuccessStatusCode();
 string html =await response.Content.ReadAsStringAsync();
 
-await using var db = new WordContext();
+await using var db = new WordContext(connectionString);
 try
 {
     var word = db.Words
